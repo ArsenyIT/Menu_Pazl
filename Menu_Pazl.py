@@ -158,8 +158,6 @@ class GameScreen(State):
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                #if event.key == pygame.K_ESCAPE:
-                #    return MenuScreen()
                 if event.key == pygame.K_SPACE:
                     import random
                     import os
@@ -227,6 +225,9 @@ class GameScreen(State):
                     running = True
                     while running:
                         for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
                             if event.type == pygame.KEYDOWN:
                                 if event.key == pygame.K_ESCAPE:
                                     running = False
