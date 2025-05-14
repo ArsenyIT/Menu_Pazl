@@ -1,10 +1,22 @@
 import sys
 import abc
+import random
+import os
 import pygame
 from pygame.event import event_name
-
 pygame.init()
 pygame.font.init()
+
+size = (1280, 720)
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption("My Game")
+Background = (0,0,0)
+screen.fill(Background)
+FPS = 60
+clock = pygame.time.Clock()
+
+player_name = 'АНОНИМ'
+font = pygame.font.SysFont(None, 64)
 
 class State(abc.ABC):
     @abc.abstractmethod
@@ -159,14 +171,11 @@ class GameScreen(State):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    import random
-                    import os
-
                     def draw_swaps():
                         font = pygame.font.SysFont(None, 32)
                         text = font.render(f'Кол-во перестановок: {swaps}', True, (255, 255, 255))
                         text_rect = text.get_rect()
-                        text_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 200)
+                        text_rect.center = (SCREEN_WIDTH // 2 + 300, SCREEN_HEIGHT // 2 + 100)
                         pygame.draw.rect(screen, (0, 0, 0), text_rect.inflate(4, 4))
                         screen.blit(text, text_rect)
 
@@ -174,7 +183,7 @@ class GameScreen(State):
                         font = pygame.font.SysFont(None, 32)
                         text = font.render('Ура, картина собрана!', True, (255, 255, 255))
                         text_rect = text.get_rect()
-                        text_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 250)
+                        text_rect.center = (SCREEN_WIDTH // 2 + 300, SCREEN_HEIGHT // 2 + 150)
                         pygame.draw.rect(screen, (0, 0, 0), text_rect.inflate(4, 4))
                         screen.blit(text, text_rect)
 
@@ -190,8 +199,8 @@ class GameScreen(State):
                                 x - margin, y - margin, tile_width + margin * 2, tile_height + margin * 2))
                             screen.blit(tile, (x, y))
 
-                    SCREEN_WIDTH = 1000
-                    SCREEN_HEIGHT = 800
+                    SCREEN_WIDTH = 1280
+                    SCREEN_HEIGHT = 720
                     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
                     pygame.display.set_caption("Пазл")
                     Background = (0, 0, 0)
@@ -277,17 +286,6 @@ class GameScreen(State):
         name_rect.left = screen.get_rect().left + 10
         name_rect.top = screen.get_rect().top + 10
         screen.blit(self.name_surface, name_rect)
-
-size = (1280, 720)
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption("My Game")
-Background = (0,0,0)
-screen.fill(Background)
-FPS = 60
-clock = pygame.time.Clock()
-
-player_name = 'АНОНИМ'
-font = pygame.font.SysFont(None, 64)
 
 state = SplashScreen()
 
