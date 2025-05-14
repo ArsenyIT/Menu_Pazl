@@ -161,8 +161,32 @@ class NameScreen(State):
 class GameScreen(State):
     def __init__(self):
         self.text = 'Игра'
-        self.surface =  font.render(self.text, True, (255, 255, 255))
+        self.surface = font.render(self.text, True, (255, 255, 255))
         self.name_surface = font.render(player_name, True, (255, 255, 255))
+
+        self.rows = 3
+        self.cols = 3
+        self.margin = 2
+        self.selected = None
+        self.swaps = 0
+        self.game_over = False
+
+        pictures = os.listdir('pictures')
+        picture = random.choice(pictures)
+        image = pygame.image.load('pictures/' + picture)
+
+        self.tile_width = image.get_width() // self.cols
+        self.tile_height = image.get_height() // self.rows
+
+        self.tiles = []
+        for i in range(self.rows):
+            for j in range(self.cols):
+                rect = pygame.Rect(j * self.tile_width, i * self.tile_height, self.tile_width, self.tile_height)
+                tile = image.subsurface(rect)
+                self.tiles.append(tile)
+
+        self.origin_tiles = self.tiles.copy()
+        random.shuffle(self.tiles)
 
     def handle_events(self, events):
         for event in events:
@@ -170,122 +194,52 @@ class GameScreen(State):
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    def draw_swaps():
-                        font = pygame.font.SysFont(None, 32)
-                        text = font.render(f'Кол-во перестановок: {swaps}', True, (255, 255, 255))
-                        text_rect = text.get_rect()
-                        text_rect.center = (SCREEN_WIDTH // 2 + 300, SCREEN_HEIGHT // 2 + 100)
-                        pygame.draw.rect(screen, (0, 0, 0), text_rect.inflate(4, 4))
-                        screen.blit(text, text_rect)
-
-                    def game_over():
-                        font = pygame.font.SysFont(None, 32)
-                        text = font.render('Ура, картина собрана!', True, (255, 255, 255))
-                        text_rect = text.get_rect()
-                        text_rect.center = (SCREEN_WIDTH // 2 + 300, SCREEN_HEIGHT // 2 + 150)
-                        pygame.draw.rect(screen, (0, 0, 0), text_rect.inflate(4, 4))
-                        screen.blit(text, text_rect)
-
-                    def draw_tiles():
-                        for i in range(len(tiles)):
-                            tile = tiles[i]
-                            row = i // rows
-                            col = i % cols
-                            x = col * (tile_width + margin) + margin
-                            y = row * (tile_height + margin) + margin
-                            if i == selected:
-                                pygame.draw.rect(screen, (0, 255, 0), (
-                                x - margin, y - margin, tile_width + margin * 2, tile_height + margin * 2))
-                            screen.blit(tile, (x, y))
-
-                    SCREEN_WIDTH = 1280
-                    SCREEN_HEIGHT = 720
-                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-                    pygame.display.set_caption("Пазл")
-                    Background = (0, 0, 0)
-                    screen.fill(Background)
-                    rows = 3
-                    cols = 3
-                    margin = 2
-                    FPS = 60
-                    clock = pygame.time.Clock()
-
-                    pictures = os.listdir('pictures')
-                    picture = random.choice(pictures)
-                    image = pygame.image.load('pictures/' + picture)
-
-                    image_width, image_height = image.get_size()
-                    tile_width = image_width // cols
-                    tile_height = image_height // rows
-
-                    tiles = []
-                    for i in range(rows):
-                        for j in range(cols):
-                            rect = pygame.Rect(j * tile_width, i * tile_height, tile_width, tile_height)
-                            tile = image.subsurface(rect)
-                            tiles.append(tile)
-
-                    origin_tiles = tiles.copy()
-                    random.shuffle(tiles)
-                    swaps = 0
-                    selected = None
-
-                    running = True
-                    while running:
-                        for event in pygame.event.get():
-                            if event.type == pygame.QUIT:
-                                pygame.quit()
-                                sys.exit()
-                            if event.type == pygame.KEYDOWN:
-                                if event.key == pygame.K_ESCAPE:
-                                    running = False
-                                    return MenuScreen()
-
-                                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                                    for i in range(len(tiles)):
-                                        row = i // rows
-                                        col = i % cols
-                                        x = col * (tile_width + margin) + margin
-                                        y = row * (tile_height + margin) + margin
-
-                                        if x <= mouse_x <= x + tile_width and y <= mouse_y <= y + tile_height:
-                                            if selected is not None and selected != i:
-                                                tiles[i], tiles[selected] = tiles[selected], tiles[i]
-                                                selected = None
-                                                swaps += 1
-                                            elif selected == i:
-                                                selected = None
-                                            else:
-                                                selected = i
-
-                        screen.fill(Background)
-                        draw_tiles()
-                        draw_swaps()
-
-                        if tiles == origin_tiles:
-                            game_over()
-
-                        pygame.display.flip()
-                        clock.tick(FPS)
-
-                    pygame.quit()
+                if event.key == pygame.K_ESCAPE:
+                    return MenuScreen()
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if self.game_over:
+                    return MenuScreen()
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                for i in range(len(self.tiles)):
+                    row = i // self.rows
+                    col = i % self.cols
+                    x = col * (self.tile_width + self.margin) + self.margin
+                    y = row * (self.tile_height + self.margin) + self.margin
+                    if x <= mouse_x <= x + self.tile_width and y <= mouse_y <= y + self.tile_height:
+                        if self.selected is not None and self.selected != i:
+                            self.tiles[i], self.tiles[self.selected] = self.tiles[self.selected], self.tiles[i]
+                            self.selected = None
+                            self.swaps += 1
+                        elif self.selected == i:
+                            self.selected = None
+                        else:
+                            self.selected = i
         return self
 
     def update(self):
-        pass
+        if self.tiles == self.origin_tiles:
+            self.game_over = True
 
     def draw(self, screen):
         screen.fill(Background)
-        rect = self.surface.get_rect()
-        rect.centerx = screen.get_rect().centerx
-        rect.centery = screen.get_rect().centery
-        screen.blit(self.surface, rect)
-        name_rect = self.name_surface.get_rect()
-        name_rect.left = screen.get_rect().left + 10
-        name_rect.top = screen.get_rect().top + 10
-        screen.blit(self.name_surface, name_rect)
+        for i, tile in enumerate(self.tiles):
+            row = i // self.rows
+            col = i % self.cols
+            x = col * (self.tile_width + self.margin) + self.margin
+            y = row * (self.tile_height + self.margin) + self.margin
+            if i == self.selected:
+                pygame.draw.rect(screen, (0, 255, 0), (
+                    x - self.margin, y - self.margin, self.tile_width + self.margin * 2, self.tile_height + self.margin * 2))
+            screen.blit(tile, (x, y))
+
+        screen.blit(self.name_surface, (800, 10))
+
+        text = pygame.font.SysFont(None, 32).render(f'Перестановок: {self.swaps}', True, (255, 255, 255))
+        screen.blit(text, (800, 50))
+
+        if self.game_over:
+            over = pygame.font.SysFont(None, 48).render('Ура, картина собрана!', True, (0, 255, 0))
+            screen.blit(over, (800, 100))
 
 state = SplashScreen()
 
